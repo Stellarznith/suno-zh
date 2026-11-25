@@ -18,3 +18,8 @@
 ## v0.2.1 增量适配（Tooltip 悬停气泡）
 - **定位机制**：Suno 悬停提示均通过 `[data-base-ui-portal]` 下 `role="presentation"` 与 `[data-base-ui-focusable]:not([role])` 挂载（不使用原生 `title` 或 `role="tooltip"`）。
 - **覆盖范围**：创作页 `Audio` / `Voice` / `Image` / `Inspo` / 工具栏图标 / `More Options` 参数说明、Speech & Sounds 参数提示、Visuals 提示与剩余积分（`Credits remaining: N`）、折叠侧边栏导航提示以及播放栏提示，支持全中文与中英对照切换。
+
+## v0.2.2 全量二级菜单与弹窗覆盖
+- **结构补齐**：支持 `role="menuitemcheckbox"`（`Manage` 子菜单开关）、`role="menuitemradio"`（`Theme` / `Language`）、无 `aria-label` 的 `.context-menu-item` 按钮组（`+ Audio`：`Upload`/`Browse`/`Record`）。
+- **语义纠偏**：徽章 `New` 译为「新」（修复此前误译为「新建」），`Mashup` 译为「混搭」并增强中英对照括号防重逻辑。
+- **全量词条**：补齐 `Edit` 全部子菜单（`Remove section` / `Reverse` / `Adjust speed` / `Find a collaborator` / `Fade in` / `Fade out` / `Open in Editor`）、`Create visual`（`Cover art` / `Video clip`）、`Manage`（`Downloads` -> 允许下载）、`Theme`（`Dark` / `Light` / `System`）、`Download` / `Share` / `Add to playlist` / `Move to workspace` / `My taste` / `Notifications Settings` 弹窗、Visuals `Model` 套餐选项与 `Style Guide` 全部 56 项技法词条、以及 `/studio` 顶/底二级菜单。

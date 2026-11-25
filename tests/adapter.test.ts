@@ -306,3 +306,105 @@ test('Base UI portal hover tooltips translate in zh and bilingual modes and rest
   );
   expect(document.querySelector('#_r_5 [data-base-ui-focusable]')!.textContent).toBe('Enable repeat 1');
 });
+
+test('all submenu items, badges, menuitemcheckbox, menuitemradio, and legacy + Audio menu translate cleanly', async () => {
+  start(
+    '<div role="menu">' +
+      '<button role="menuitem"><span>Mashup</span></button>' +
+      '<button role="menuitem"><span>Remove section</span></button>' +
+      '<button role="menuitem"><span>Reverse</span></button>' +
+      '<button role="menuitem"><span>Adjust speed</span></button>' +
+      '<button role="menuitem"><span>Find a collaborator</span></button>' +
+      '<button role="menuitem"><span>Fade in</span><span>Pro</span></button>' +
+      '<button role="menuitem"><span>Fade out</span><span>Pro</span></button>' +
+      '<button role="menuitem"><span>Open in Studio</span><span>New</span></button>' +
+      '<button role="menuitem"><span>Open in Editor</span><span>Pro</span></button>' +
+      '<button role="menuitem"><span>Cover art</span></button>' +
+      '<button role="menuitem"><span>Video clip</span></button>' +
+      '<button role="menuitemcheckbox"><span>Downloads</span></button>' +
+      '<button role="menuitemcheckbox"><span>Allow remixes</span></button>' +
+      '<button role="menuitemradio"><span>Dark</span></button>' +
+      '<button role="menuitemradio"><span>System</span></button>' +
+      '</div>' +
+      '<div class="context-menu-item"><button>Upload</button><button>Browse</button><button>Record</button></div>',
+    '/create',
+  );
+  await settle();
+  const menuItems = [...document.querySelectorAll('[role="menu"] > button')].map(b => b.textContent);
+  expect(menuItems).toEqual([
+    '混搭',
+    '删除片段',
+    '倒放',
+    '调整速度',
+    '寻找合作者',
+    '淡入Pro',
+    '淡出Pro',
+    '在工作室中打开新',
+    '在编辑器中打开Pro',
+    '封面艺术',
+    '视频片段',
+    '允许下载',
+    '允许混音二创',
+    '深色',
+    '跟随系统',
+  ]);
+  expect([...document.querySelectorAll('.context-menu-item button')].map(b => b.textContent)).toEqual([
+    '上传',
+    '浏览',
+    '录音',
+  ]);
+
+  engine.setMode('bilingual');
+  await settle();
+  expect(document.querySelector('[role="menu"] > button')!.textContent).toBe('混搭 (Mashup)');
+  expect(document.querySelectorAll('[role="menu"] > button')[7].textContent).toBe(
+    '在工作室中打开 (Open in Studio)新 (New)',
+  );
+});
+
+test('secondary dialogs (Download, Share, My Taste, Notifications Settings, Style Guide) and Visuals models translate while preserving song title', async () => {
+  start(
+    '<div role="dialog">' +
+      "<h2>Download'My Song'</h2>" +
+      '<button>MP4 video asset</button><button>Unlock & Download</button>' +
+      '<h3>Share to...</h3><button>Email</button><button>Embed</button>' +
+      '<h2>My Taste</h2><textarea>keep user taste input</textarea><button>Save</button>' +
+      '<h2>Notification Settings</h2><span>Interactions</span><span>Likes and plays on your posts</span>' +
+      '<h2>Style Guide</h2><a href="/guide">Inspiration Guide</a><nav><button>Atmosphere</button><button>Camera</button></nav>' +
+      '<h3>What’s the light like?</h3><button>Golden hour</button><button>Dutch angle</button><button>FPV drone</button>' +
+      '</div>' +
+      '<button role="combobox" aria-label="Model" aria-controls="vis-models">Standard</button>' +
+      '<div role="listbox" id="vis-models"><div role="option"><span>Standard</span><span>1K • Balanced quality • 25 credits</span></div></div>',
+    '/create/visuals',
+  );
+  await settle();
+  const dialog = document.querySelector('[role="dialog"]')!;
+  expect(dialog.querySelector('h2')!.textContent).toBe("下载 'My Song'");
+  expect(dialog.querySelector('textarea')!.value).toBe('keep user taste input');
+  expect([...dialog.querySelectorAll('h2, h3')].map(h => h.textContent)).toEqual([
+    "下载 'My Song'",
+    '分享到...',
+    '我的音乐品味',
+    '通知设置',
+    '风格指南',
+    '光线效果如何？',
+  ]);
+  expect([...dialog.querySelectorAll('button')].map(b => b.textContent)).toEqual([
+    'MP4 视频素材',
+    '解锁并下载',
+    '电子邮件',
+    '嵌入代码',
+    '保存',
+    '氛围与光影',
+    '镜头语言',
+    '黄金时刻暖光',
+    '荷兰倾斜角',
+    'FPV 穿越机视角',
+  ]);
+  expect(dialog.querySelector('a')!.textContent).toBe('灵感指南');
+  expect([...dialog.querySelectorAll('span')].map(s => s.textContent)).toEqual([
+    '互动消息',
+    '作品获得的点赞与播放',
+  ]);
+  expect(document.querySelector('#vis-models')!.textContent).toBe('标准1K · 均衡画质 · 25 积分');
+});

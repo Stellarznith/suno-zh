@@ -38,7 +38,8 @@ const protectedSelector = [
   '[data-testid*="song-row"]',
 ].join(',');
 
-const actionSelector = 'button,[role="button"],[role="tab"],[role="option"],[role="menuitem"],label,h1,h2,h3';
+const actionSelector =
+  'button,[role="button"],[role="tab"],[role="option"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],label,h1,h2,h3';
 
 const canonicalRoutes = new Set([
   '/',
@@ -99,7 +100,9 @@ function onPage(element: Element, path: string) {
 }
 
 function contextMenuAction(element: Element) {
-  return element.closest('.context-menu-item > button[aria-label], [role="menuitem"]');
+  return element.closest(
+    '.context-menu-item button, .context-menu-item, [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]',
+  );
 }
 
 /** 判断元素是否位于歌曲卡片容器内，并仅放行非歌名的固定操作按钮 */
@@ -193,25 +196,25 @@ function selectContext(element: Element): MatchContext | undefined {
   if (trigger) {
     const triggerLabel = trigger.getAttribute('aria-label') ?? '';
     if (triggerLabel.startsWith('Filters')) return { dictionary: filters, scope: 'filters' };
-    if (triggerLabel === 'Model') return { dictionary: creation, scope: 'creation' };
-    return { dictionary: library, scope: 'library', fallback: [creation] };
+    if (triggerLabel.startsWith('Model')) return { dictionary: creation, scope: 'creation' };
+    return { dictionary: library, scope: 'library', fallback: [creation, song] };
   }
   // 孤立未绑定触发器的 listbox 不做翻译，防止误伤第三方或未知组件。
   if (element.closest('[role="listbox"]')) return undefined;
 
-  // 3. 上下文菜单（三点菜单、子菜单、个人菜单、More 菜单）
+  // 3. 上下文菜单（三点菜单、子菜单、个人菜单、More 菜单、+ Audio 菜单、Studio 菜单）
   if (contextMenuAction(element) || element.closest('[role="menu"]')) {
-    return { dictionary: menus, fallback: [creation, navigation] };
+    return { dictionary: menus, fallback: [studio, creation, navigation] };
   }
 
   // 4. 弹窗（Dialog）
   if (element.closest('[role="dialog"]')) {
-    return { dictionary: dialogs, scope: 'creation' };
+    return { dictionary: dialogs, scope: 'dialog', fallback: [creation, menus, studio] };
   }
 
-  // 4.5 鼠标悬停提示气泡（Base UI Portal Tooltip 与标准 role="tooltip"）
+  // 4.5 鼠标悬停提示气泡及无 role="dialog" 的 Base UI Portal Popover
   if (isTooltip(element)) {
-    return { dictionary: tooltips, scope: 'tooltip', fallback: [creation, navigation, playbar] };
+    return { dictionary: tooltips, scope: 'tooltip', fallback: [dialogs, menus, creation, navigation, studio, playbar] };
   }
 
   // 5. 创作表单（支持 /create、/create/visuals 及嵌入式创作面板）

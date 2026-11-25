@@ -57,7 +57,9 @@ export class TranslationEngine {
           // 容器元素可能从普通按钮演变为受保护内容，需重新评估父级。
           if (
             record.target.nodeType === 1 &&
-            (record.target as Element).matches('button,[role="tab"],[role="menuitem"]')
+            (record.target as Element).matches(
+              'button,[role="tab"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]',
+            )
           ) {
             this.pending.add(record.target);
           }

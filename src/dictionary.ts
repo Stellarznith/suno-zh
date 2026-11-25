@@ -1,11 +1,11 @@
 import type { ActiveTranslationMode } from './engine';
 
 export type Dictionary = Readonly<Record<string, string>>;
-export type DynamicScope = 'filters' | 'creation' | 'library' | 'song' | 'navigation' | 'tooltip';
+export type DynamicScope = 'filters' | 'creation' | 'library' | 'song' | 'navigation' | 'tooltip' | 'dialog';
 
 /**
  * 将中文译文按当前显示模式格式化，保留原始首尾空白。
- * 在中英对照模式下，若译文与原文实质相同则直接返回原文，避免重复括号。
+ * 在中英对照模式下，若译文与原文实质相同或已自带相同英文括号说明，则不再重复拼接括号。
  */
 export function formatTranslation(
   source: string,
@@ -15,7 +15,11 @@ export function formatTranslation(
   const trimmed = source.trim();
   if (!trimmed) return source;
   if (mode === 'zh') return source.replace(trimmed, translated);
-  if (translated.trim().toLowerCase() === trimmed.toLowerCase()) return source;
+  const lowerTrimmed = trimmed.toLowerCase();
+  const lowerTranslated = translated.trim().toLowerCase();
+  if (lowerTranslated === lowerTrimmed || lowerTranslated.includes(`(${lowerTrimmed})`)) {
+    return source.replace(trimmed, translated);
+  }
   return source.replace(trimmed, `${translated} (${trimmed})`);
 }
 
@@ -66,6 +70,7 @@ export const library: Dictionary = {
   'Search clips': '搜索作品',
   Newest: '最新优先',
   Oldest: '最早优先',
+  Recent: '最新',
   'Most liked': '最多点赞',
   'Most Liked': '最多点赞',
   'Least liked': '最少点赞',
@@ -199,19 +204,36 @@ export const creation: Dictionary = {
   Sound: '音效描述',
   'Describe the sound you want': '描述你想要的音效',
   'Create short samples — effects, loops, and one-shots. Ready to drop into anything.':
-    '创作短音频采样——音效、循环（Loop）与单次采样（One-Shot），随时可用于任何作品。',
+    '创作短音频采样——音效、循环与单次采样，随时可用于任意作品。',
   Type: '类型',
   'One-Shot': '单次采样',
   Loop: '循环片段',
   BPM: 'BPM',
   Key: '调性',
   Any: '任意',
+  Major: '大调',
+  Minor: '小调',
   Dismiss: '关闭',
 
   // Visuals 模式（/create/visuals）
   Model: '模型',
   Fast: '极速',
+  Standard: '标准',
+  Max: '极致',
   Quality: '高质量',
+  '1K • Quick drafts • 1 credit': '1K · 快速草稿 · 1 积分',
+  '1K • Balanced quality • 25 credits': '1K · 均衡画质 · 25 积分',
+  '2K • Highest quality • 50 credits': '2K · 最高画质 · 50 积分',
+  '480p • Quick drafts • 15 credits/sec': '480p · 快速草稿 · 15 积分/秒',
+  '720p • Balanced quality • 30 credits/sec': '720p · 均衡画质 · 30 积分/秒',
+  'Quick drafts': '快速草稿',
+  'Balanced quality': '均衡画质',
+  'Highest quality': '最高画质',
+  Low: '低',
+  Medium: '中',
+  High: '高',
+  Default: '默认',
+  None: '无',
   '+ Audio': '+ 音频',
   '+ Character': '+ 角色',
   'Start frame': '首帧',
@@ -227,9 +249,13 @@ export const creation: Dictionary = {
   'Aspect ratio': '宽高比',
   Learn: '了解详情',
   Upload: '上传',
+  Browse: '浏览',
+  'From Library': '从资料库选择',
+  'Choose Character': '选择角色',
+  'Create New': '新建',
   'What you create will appear here': '你创作的内容将会显示在这里',
 
-  // 模型 / Voice / Inspo 弹窗文案
+  // 模型 / Voice / Inspo / Saved 弹窗文案
   'Create Custom Model': '创建自定义模型',
   'Create a model based on your uploads (100 Credits)': '基于你上传的音频创建模型（100 积分）',
   'All Models': '全部模型',
@@ -240,13 +266,20 @@ export const creation: Dictionary = {
   'My Voices': '我的声音',
   Favorites: '收藏',
   'Create Voice': '创建声音',
-  New: '新建',
+  New: '新',
   'Record or upload your voice': '录制或上传你的声音',
   'No Voices': '暂无声音',
   'Voices let you create songs that have a similar style and voice.': '“声音”功能可让你创作出具有相似音色与风格的歌曲。',
   'Pick a playlist of your own songs to inspire your next creation. Only your music will be used to shape the sound.':
     '选择一个包含你个人作品的播放列表作为灵感来源，仅使用你的音乐来塑造声音风格。',
   'No playlists found': '未找到播放列表',
+  'Search lyrics': '搜索歌词',
+  'Search styles': '搜索风格',
+  'Search or create...': '搜索或创建...',
+  'Create your own lyricist': '打造你的专属作词人',
+  'Add examples of your lyrics and you can create new lyrics with the same vibe.':
+    '添加你的歌词示例，即可创作出相同氛围的新歌词。',
+  'Got it': '知道了',
 
   // /create 右侧列表区与引导挑战
   'My Songs': '我的歌曲',
@@ -254,6 +287,7 @@ export const creation: Dictionary = {
   'Search clips': '搜索作品',
   Newest: '最新优先',
   Oldest: '最早优先',
+  Recent: '最新',
   'Most liked': '最多点赞',
   'Least liked': '最少点赞',
   List: '列表',
@@ -269,7 +303,7 @@ export const creation: Dictionary = {
   'Download in higher quality': '下载更高音质',
   'Share 5 of your songs': '分享 5 首你的歌曲',
   'Use the best model': '使用最佳模型',
-  Complete: '去完成',
+  Complete: '完成',
   Completed: '已完成',
   Share: '分享',
 };
@@ -284,11 +318,17 @@ export const filters: Dictionary = {
   Uploads: '已上传',
   'Full song': '完整歌曲',
   'Full Song': '完整歌曲',
+  'Full Songs': '完整歌曲',
   Cover: '翻唱',
+  Covers: '翻唱',
   Voices: '声音',
   Downloads: '已下载',
+  Images: '图片',
+  Videos: '视频',
+  Sequences: '连续片段',
   'Hide Disliked': '隐藏不喜欢的歌曲',
   'Hide Stems': '隐藏分轨',
+  'Hide Sequence clips': '隐藏连续片段',
   'Hide disliked': '隐藏不喜欢的歌曲',
   'Hide stems': '隐藏分轨',
   'Clear Filters': '清除筛选',
@@ -308,6 +348,8 @@ export const menus: Dictionary = {
   Share: '分享',
   'Create visual': '制作视觉视频',
   'Create Visual': '制作视觉视频',
+  'Cover art': '封面艺术',
+  'Video clip': '视频片段',
   Download: '下载',
   Manage: '管理',
   'Add to queue': '加入播放队列',
@@ -323,22 +365,30 @@ export const menus: Dictionary = {
   'Create Cover': '创建翻唱',
   'Reuse prompt': '复用提示词',
   'Reuse Prompt': '复用提示词',
-  Mashup: '混搭 (Mashup)',
+  Mashup: '混搭',
   'Sample this song': '采样此歌曲',
   'Use as inspiration': '用作创作灵感',
   Voice: '提取/用作声音',
   Extend: '续写',
+  Crop: '裁剪',
+  'Remove section': '删除片段',
+  Reverse: '倒放',
+  'Adjust speed': '调整速度',
+  'Find a collaborator': '寻找合作者',
+  'Fade in': '淡入',
+  'Fade out': '淡出',
   Remaster: '母带重制',
   'Replace Section': '替换片段',
   'Replace section': '替换片段',
-  Crop: '裁剪',
   'Get Stems': '获取分轨',
   'Get stems': '获取分轨',
   'Open in Studio': '在工作室中打开',
+  'Open in Editor': '在编辑器中打开',
   'Song details': '歌曲详情',
   'Song Details': '歌曲详情',
   'Edit Song Details': '编辑歌曲信息',
   'Allow remixes': '允许混音二创',
+  Downloads: '允许下载',
   'Allow comments': '允许评论',
   'Pin to profile': '置顶到个人主页',
   'Move to workspace': '移至工作区',
@@ -350,13 +400,17 @@ export const menus: Dictionary = {
   'Make Private': '设为私密',
   Delete: '删除',
   Pro: 'Pro',
+  New: '新',
 
-  // 个人账户菜单
+  // 个人账户菜单与 Theme 子菜单
   Subscription: '订阅方案',
   Account: '账户设置',
   Restrictions: '内容与限制',
   Language: '语言',
   Theme: '外观主题',
+  Dark: '深色',
+  Light: '浅色',
+  System: '跟随系统',
   'My taste': '我的品味',
   'Sign out': '退出登录',
   Profile: '个人主页',
@@ -372,9 +426,31 @@ export const menus: Dictionary = {
   'Terms of service': '服务条款',
   'Privacy policy': '隐私政策',
   'Your privacy choices': '隐私偏好选择',
+
+  // + Audio 与 Visuals 二级菜单
+  Upload: '上传',
+  Browse: '浏览',
+  Record: '录音',
+  'From Library': '从资料库选择',
+  'Visuals Tutorial': '视觉创作教程',
+  'Visuals Inspiration Guide': '视觉灵感指南',
+
+  // Studio 顶部与底部二级菜单
+  'New Project': '新建项目',
+  'Open Project': '打开项目',
+  'Duplicate Project': '复制项目',
+  'Share Project': '分享项目',
+  'Studio Settings': '工作室设置',
+  'Full Song': '完整歌曲',
+  'Selected Time Range': '所选时间范围',
+  Multitrack: '多轨分轨',
+  'Keyboard Shortcuts': '快捷键',
+  'YouTube Tutorials': 'YouTube 教程',
+  'Learning Center': '学习中心',
+  "What's This?": '这是什么？',
 };
 
-/** 弹窗（[role="dialog"]）固定文案：整合通用操作、通知、Cookie 与创作弹窗 */
+/** 弹窗（[role="dialog"]）固定文案：整合通用操作、下载、分享、通知、我的品味、Cookie 与 Style Guide */
 export const dialogs: Dictionary = {
   ...creation,
   Cancel: '取消',
@@ -387,6 +463,14 @@ export const dialogs: Dictionary = {
   Reset: '重置',
   Delete: '删除',
   Dismiss: '关闭',
+  Back: '返回',
+  'Mark all as read': '全部标为已读',
+  Settings: '设置',
+  Edit: '编辑',
+  Remove: '移除',
+  Copy: '复制',
+  Copied: '已复制',
+  'Copied!': '已复制！',
   'Copy Link': '复制链接',
   'Copy link': '复制链接',
   'Create Playlist': '创建播放列表',
@@ -396,17 +480,148 @@ export const dialogs: Dictionary = {
   'Add to playlist': '加入播放列表',
   'Move to Workspace': '移至工作区',
   'Move to workspace': '移至工作区',
+  'Create Workspace': '创建工作区',
+  'Liked songs': '喜欢的歌曲',
   Share: '分享',
+  'Share to...': '分享到...',
+  Email: '电子邮件',
+  Embed: '嵌入代码',
   Download: '下载',
+  'MP4 video asset': 'MP4 视频素材',
+  'Stems & MIDI': '分轨与 MIDI',
+  Manage: '管理',
+  'Unlock & Download': '解锁并下载',
+  Plan: '当前套餐',
+  Downloads: '下载额度',
+  Refreshes: '刷新时间',
   Notifications: '通知',
   Activity: '动态',
   'No notifications here yet': '暂时没有新通知',
+  'Notification Settings': '通知设置',
+  Interactions: '互动消息',
+  Announcements: '官方公告',
+  'New features, remix contests and more': '新功能发布、混音大赛及更多动态',
+  'Likes and plays on your posts': '作品获得的点赞与播放',
+  'When someone likes or plays your post': '当有人点赞或播放你的作品时',
+  'New posts from people you follow': '关注创作者的新作品',
+  'When someone you follow publishes a new post': '当你关注的人发布新作品时',
+  'New followers': '新增粉丝',
+  'When someone follows you': '当有人关注你时',
+  'Comments on your posts': '作品收到的评论',
+  'When someone comments on your post': '当有人评论你的作品时',
+  Mentions: '提及',
+  'When someone mentions you': '当有人提及你时',
+  'My Taste': '我的音乐品味',
+  'Capture your taste profile on Suno. The more you create, listen, like and dislike, the more Suno learns to speak your musical language.':
+    '在 Suno 上记录你的音乐品味画像。你创作、收听、点赞与点踩得越多，Suno 就越懂你的音乐语言。',
+  'Or write one now to shape your sound right away.': '或者现在就写一段描述，立刻塑造你的专属声音风格。',
+  'My Styles': '我的风格',
+  'When toggled on, using the magic wand in the styles field will apply your taste profile to generate style suggestions.':
+    '开启后，在风格栏点击魔法棒将结合你的品味画像生成风格建议。',
   'We use cookies': '我们使用 Cookie',
   "We use cookies to run this site and, with your consent, to measure how it's used and to personalize it. You choose what's on and you can change your mind anytime.":
     '我们使用 Cookie 来保障网站运行，并在征得您同意后用于统计使用情况和提供个性化体验。您可以自主选择开启或关闭，并随时更改设置。',
   Customize: '自定义设置',
   'Reject All': '全部拒绝',
   'Accept All': '全部接受',
+
+  // Studio 弹窗
+  'Time Signature': '拍号',
+  'Project key': '项目调性',
+  'Transpose song': '歌曲移调',
+  'Auto detect': '自动检测',
+  Manual: '手动设置',
+  'Add melodic or harmonic tracks to detect a key': '添加旋律或和声轨道以自动检测调性',
+
+  // Visuals Style Guide 弹窗（导航、分类问题与 56 项技法词条）
+  'Inspiration Guide': '灵感指南',
+  Atmosphere: '氛围与光影',
+  Camera: '镜头语言',
+  Motion: '运镜与动态',
+  'What is it made of?': '画面材质与媒介？',
+  'What style does it have?': '整体艺术风格？',
+  'What colors fill the picture?': '画面色彩基调？',
+  'What’s the light like?': '光线效果如何？',
+  "What's the light like?": '光线效果如何？',
+  'How is the person lit?': '人物布光方式？',
+  'What are the surroundings like?': '周围环境氛围？',
+  'What should look unreal?': '超现实视觉元素？',
+  'How close are we?': '镜头景别远近？',
+  'How are people arranged?': '人物构图站位？',
+  'How is the camera angled?': '摄影机机位角度？',
+  'How is the picture arranged?': '画面构图层次？',
+  'How wide or close is the view?': '镜头焦段视野？',
+  'Any glows or unusual edges?': '特殊光学眩光效果？',
+  'How does the camera move?': '摄影机如何运镜？',
+  'How should time move?': '时间流逝效果？',
+  'Clay animation': '黏土定格动画',
+  'Cut-paper stop motion': '剪纸定格动画',
+  'Wire marionettes': '提线木偶',
+  '1990s cel animation': '90 年代赛璐璐动画',
+  'Film noir': '黑色电影',
+  'Neo-noir': '新黑色电影',
+  'German expressionism': '德国表现主义',
+  Vaporwave: '蒸汽波',
+  'Teal and orange': '青橙色调',
+  Monochrome: '单色黑白',
+  Sepia: '复古棕褐色',
+  Palette: '精选色板',
+  'Color shift': '色彩偏移',
+  Infrared: '红外摄影',
+  'Night vision': '夜视仪效果',
+  'Golden hour': '黄金时刻暖光',
+  'Blue hour': '蓝调时刻',
+  'Practical lighting': '实景光源',
+  'Neon practicals': '霓虹实景光',
+  Spotlight: '聚光灯',
+  'Volumetric light': '丁达尔体积光',
+  'Dappled light': '斑驳光影',
+  'Moonlight gel': '月光滤镜光',
+  'Beams in haze': '雾中光束',
+  Silhouette: '剪影',
+  Snow: '飘雪',
+  Fog: '浓雾',
+  'Atmospheric haze': '空气薄雾',
+  Smoke: '烟雾',
+  Steam: '蒸汽',
+  'Raining objects': '天降异物',
+  "A cloud of one's own": '专属云朵',
+  'Sea of clouds': '云海',
+  'Storm light': '风暴天光',
+  'Echo print': '重影残像',
+  'Ink in water': '水中墨韵',
+  'Powder burst': '彩粉爆裂',
+  'Giant prop': '巨型道具',
+  'Extreme close-up': '大特写',
+  'Long shot': '远景',
+  'Over-the-shoulder coverage': '过肩镜头',
+  'High angle': '俯拍角度',
+  "Bird's-eye view": '鸟瞰视角',
+  'Dutch angle': '荷兰倾斜角',
+  'Point of view': '第一人称视角',
+  'Layered depth': '多层次景深',
+  'Foreground interest': '前景衬托',
+  'Frame within frame': '画中画构图',
+  'Dirty frame': '前景遮挡构图',
+  '14mm ultra-wide': '14mm 超广角',
+  Fisheye: '鱼眼镜头',
+  '85mm portrait': '85mm 人像镜头',
+  'Telephoto sun': '长焦落日',
+  'Lens flare': '镜头眩光',
+  'Dolly in': '推镜头',
+  'Dolly out': '拉镜头',
+  'Super dolly in': '极速推进',
+  'Aerial push in': '航拍推进',
+  'Aerial pullback': '航拍拉远',
+  '360-degree orbit': '360 度环绕',
+  'Camera roll': '镜头旋转翻滚',
+  'Pedestal up': '垂直升镜',
+  'Tilt down': '镜头下摇',
+  'Crane up': '摇臂上升',
+  'Crane down': '摇臂下降',
+  'FPV drone': 'FPV 穿越机视角',
+  'Blooming time-lapse': '花开延时摄影',
+  'Seasons pass': '四季更迭延时',
 };
 
 /** 首页（/discover）、探索页（/explore）、Labs（/labs）与 404 页面文案 */
@@ -492,6 +707,25 @@ export const studio: Dictionary = {
   'Collapse prompt panel': '收起提示词面板',
   Dismiss: '关闭',
   'Turn off Learn': '关闭提示引导',
+  'New Project': '新建项目',
+  'Open Project': '打开项目',
+  Rename: '重命名',
+  'Duplicate Project': '复制项目',
+  'Share Project': '分享项目',
+  'Studio Settings': '工作室设置',
+  'Full Song': '完整歌曲',
+  'Selected Time Range': '所选时间范围',
+  Multitrack: '多轨分轨',
+  'Keyboard Shortcuts': '快捷键',
+  'YouTube Tutorials': 'YouTube 教程',
+  'Learning Center': '学习中心',
+  "What's This?": '这是什么？',
+  'Time Signature': '拍号',
+  'Project key': '项目调性',
+  'Transpose song': '歌曲移调',
+  'Auto detect': '自动检测',
+  Manual: '手动设置',
+  'Add melodic or harmonic tracks to detect a key': '添加旋律或和声轨道以自动检测调性',
   "What's This? Hover over any control to see how it works. Click Learn to turn What's This? off.":
     '这是什么？将鼠标悬停在任意控件上即可查看说明，点击“了解”按钮可关闭此提示。',
 };
@@ -590,6 +824,7 @@ export function lookup(
 const sortNameMap: Record<string, string> = {
   Newest: '最新优先',
   Oldest: '最早优先',
+  Recent: '最新',
   'Most liked': '最多点赞',
   'Least liked': '最少点赞',
 };
@@ -623,7 +858,7 @@ export function lookupDynamic(
     }
   }
 
-  if (scope === 'creation' || scope === 'library') {
+  if (scope === 'creation' || scope === 'library' || scope === 'dialog' || scope === 'tooltip') {
     const wsMatch = normalized.match(/^No workspace\s*\((\d+) clips?\)$/);
     if (wsMatch) {
       return formatTranslation(value, `无工作区（${wsMatch[1]} 首作品）`, mode);
@@ -639,6 +874,10 @@ export function lookupDynamic(
     const clipMatch = normalized.match(/^Create (\d+s) clip$/);
     if (clipMatch) {
       return formatTranslation(value, `创作 ${clipMatch[1]} 片段`, mode);
+    }
+    const creditsPerSecMatch = normalized.match(/^(\d+)\s+credits?\/sec$/i);
+    if (creditsPerSecMatch) {
+      return formatTranslation(value, `${creditsPerSecMatch[1]} 积分/秒`, mode);
     }
     const creditsMatch = normalized.match(/^(\d+)\s+credits?$/i);
     if (creditsMatch) {
@@ -685,6 +924,17 @@ export function lookupDynamic(
     const creditsRemainingMatch = normalized.match(/^Credits remaining:\s*([\d,]+)$/);
     if (creditsRemainingMatch) {
       return formatTranslation(value, `剩余积分：${creditsRemainingMatch[1]}`, mode);
+    }
+  }
+
+  if (scope === 'dialog' || scope === 'tooltip') {
+    const downloadTitleMatch = normalized.match(/^Download\s*(['"‘’])(.+)\1$/);
+    if (downloadTitleMatch) {
+      const quote = downloadTitleMatch[1];
+      const title = downloadTitleMatch[2];
+      const translated =
+        mode === 'bilingual' ? `下载 / Download ${quote}${title}${quote}` : `下载 ${quote}${title}${quote}`;
+      return value.replace(value.trim(), translated);
     }
   }
 

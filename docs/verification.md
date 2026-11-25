@@ -30,3 +30,8 @@
 - 通过真实登录态 Suno 页面逐个悬停实测，确认 Tooltip 均使用 Base UI Portal 渲染而非原生 `title` 属性。
 - 在 `src/engine.ts` 监听 `data-open`，在 `src/adapter.ts` 与 `src/dictionary.ts` 新增 Base UI Portal Tooltip 选择器与 30+ 条悬停提示文案及动态剩余积分模板。
 - 新增 `tests/adapter.test.ts` Tooltip 三态测试并重新运行 `npm run check` 全部通过。
+
+## v0.2.2 二级菜单排查与真机端到端验收（2026-11-25）
+- 逐一展开真实 Suno 全站所有一级/二级菜单与弹出面板核查，定位并补齐遗漏的结构角色（`menuitemcheckbox` / `menuitemradio` / `.context-menu-item`）与词条，修正 `New` 徽章错译。
+- 通过 Vitest 新增覆盖全套二级菜单、弹窗、`Style Guide` 与中英对照防双括号测试。
+- 将最终产物注入真实登录态 `https://suno.com` 网页执行全中文与中英对照双模式只读巡检验证。
