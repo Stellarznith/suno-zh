@@ -25,3 +25,8 @@
 
 - 本仓库的 `aria-label` 与表单 `value` 仍保持原文不改动，以免影响 Suno 自身的 Base UI 交互定位及无障碍状态。
 - 真实浏览器端安装 Tampermonkey 后的最终目视检查可按需在 `https://suno.com/create` 页面安装 `dist/suno-zh.user.js` 进行实测体验；若遇异常可随时通过右下角 `EN` 按钮或油猴菜单一键恢复英文。
+
+## v0.2.1 Tooltip 专项验证（2026-11-25）
+- 通过真实登录态 Suno 页面逐个悬停实测，确认 Tooltip 均使用 Base UI Portal 渲染而非原生 `title` 属性。
+- 在 `src/engine.ts` 监听 `data-open`，在 `src/adapter.ts` 与 `src/dictionary.ts` 新增 Base UI Portal Tooltip 选择器与 30+ 条悬停提示文案及动态剩余积分模板。
+- 新增 `tests/adapter.test.ts` Tooltip 三态测试并重新运行 `npm run check` 全部通过。

@@ -269,3 +269,40 @@ test('mode tabs translate before the editor mounts without granting scope to unr
   expect(document.querySelector('article p')!.textContent).toBe('Lyrics');
   expect(document.querySelector<HTMLTextAreaElement>('article textarea')!.value).toBe('Styles');
 });
+
+test('Base UI portal hover tooltips translate in zh and bilingual modes and restore cleanly', async () => {
+  start(
+    '<div data-base-ui-portal="" id="_r_1"><div data-open="" data-side="bottom" role="presentation"><div data-open="" data-side="bottom" tabindex="-1" data-base-ui-focusable="">Record or upload your voice and use it to create anything.</div></div></div>' +
+      '<div data-base-ui-portal="" id="_r_2"><div data-open="" data-side="top" role="presentation"><div data-open="" data-side="top" tabindex="-1" data-base-ui-focusable="">Uses more compute to maximize consistency throughout the song. Costs 2x credits per song.</div></div></div>' +
+      '<div data-base-ui-portal="" id="_r_3"><div data-open="" data-side="right" role="presentation"><div data-open="" data-side="right" tabindex="-1" data-base-ui-focusable="">Credits remaining: 2,500</div></div></div>' +
+      '<div data-base-ui-portal="" id="_r_4"><div data-open="" data-side="right" role="presentation"><div data-open="" data-side="right" tabindex="-1" data-base-ui-focusable="">Explore</div></div></div>' +
+      '<div data-base-ui-portal="" id="_r_5"><div data-open="" data-side="top" role="presentation"><div data-open="" data-side="top" tabindex="-1" data-base-ui-focusable="">Enable repeat 1</div></div></div>' +
+      '<div data-base-ui-portal="" id="_r_6"><div data-open="" data-side="top" role="presentation"><div data-open="" data-side="top" tabindex="-1" data-base-ui-focusable="">Unknown Song Title</div></div></div>',
+    '/create',
+  );
+  await settle();
+  const tips = [...document.querySelectorAll('[data-base-ui-focusable]')].map(el => el.textContent);
+  expect(tips).toEqual([
+    '录制或上传你的声音，用于创作任意内容。',
+    '投入更多算力以最大化整首歌的一致性，每首歌消耗 2 倍积分。',
+    '剩余积分：2,500',
+    '探索',
+    '开启单曲循环',
+    'Unknown Song Title',
+  ]);
+
+  engine.setMode('bilingual');
+  await settle();
+  expect(document.querySelector('#_r_1 [data-base-ui-focusable]')!.textContent).toBe(
+    '录制或上传你的声音，用于创作任意内容。 (Record or upload your voice and use it to create anything.)',
+  );
+  expect(document.querySelector('#_r_3 [data-base-ui-focusable]')!.textContent).toBe(
+    '剩余积分：2,500 (Credits remaining: 2,500)',
+  );
+
+  engine.setMode('en');
+  expect(document.querySelector('#_r_1 [data-base-ui-focusable]')!.textContent).toBe(
+    'Record or upload your voice and use it to create anything.',
+  );
+  expect(document.querySelector('#_r_5 [data-base-ui-focusable]')!.textContent).toBe('Enable repeat 1');
+});

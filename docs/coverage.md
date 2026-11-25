@@ -14,3 +14,7 @@
 | 其他页面 | `/discover`、`/explore`、`/studio`、`/labs`、`/sign-in`、播放栏与 404 | 对应路由下的固定按钮、标题与输入框 `placeholder` | 歌曲卡片容器 `[data-testid="clip-row"]` 与含 `/song/` 链接的 `[role="group"]` |
 
 `base-ui-*` ID 与打包哈希类名会随发布变化，脚本均避免将其作为硬编码定位依据；所有已失效的旧版 `.context-menu-item` 与嵌入式左侧面板假设均已更新并保留向后兼容。
+
+## v0.2.1 增量适配（Tooltip 悬停气泡）
+- **定位机制**：Suno 悬停提示均通过 `[data-base-ui-portal]` 下 `role="presentation"` 与 `[data-base-ui-focusable]:not([role])` 挂载（不使用原生 `title` 或 `role="tooltip"`）。
+- **覆盖范围**：创作页 `Audio` / `Voice` / `Image` / `Inspo` / 工具栏图标 / `More Options` 参数说明、Speech & Sounds 参数提示、Visuals 提示与剩余积分（`Credits remaining: N`）、折叠侧边栏导航提示以及播放栏提示，支持全中文与中英对照切换。

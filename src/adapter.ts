@@ -13,6 +13,7 @@ import {
   playbar,
   song,
   studio,
+  tooltips,
   type Dictionary,
   type DynamicScope,
 } from './dictionary';
@@ -161,6 +162,15 @@ function isNavigationRoute(href: string) {
   return canonicalRoutes.has(href) || href.startsWith('/account');
 }
 
+function isTooltip(element: Element) {
+  return Boolean(
+    element.closest('[role="tooltip"]') ||
+      element.closest(
+        '[data-base-ui-portal] [role="presentation"] [data-base-ui-focusable]:not([role]), [data-base-ui-portal] [data-side][data-base-ui-focusable]:not([role])',
+      ),
+  );
+}
+
 function selectContext(element: Element): MatchContext | undefined {
   // 1. 路由链接与资料库 Tab
   const link = element.closest('a[href]');
@@ -197,6 +207,11 @@ function selectContext(element: Element): MatchContext | undefined {
   // 4. 弹窗（Dialog）
   if (element.closest('[role="dialog"]')) {
     return { dictionary: dialogs, scope: 'creation' };
+  }
+
+  // 4.5 鼠标悬停提示气泡（Base UI Portal Tooltip 与标准 role="tooltip"）
+  if (isTooltip(element)) {
+    return { dictionary: tooltips, scope: 'tooltip', fallback: [creation, navigation, playbar] };
   }
 
   // 5. 创作表单（支持 /create、/create/visuals 及嵌入式创作面板）

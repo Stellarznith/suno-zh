@@ -1,7 +1,7 @@
 import type { ActiveTranslationMode } from './engine';
 
 export type Dictionary = Readonly<Record<string, string>>;
-export type DynamicScope = 'filters' | 'creation' | 'library' | 'song' | 'navigation';
+export type DynamicScope = 'filters' | 'creation' | 'library' | 'song' | 'navigation' | 'tooltip';
 
 /**
  * 将中文译文按当前显示模式格式化，保留原始首尾空白。
@@ -520,6 +520,60 @@ export const playbar: Dictionary = {
   Share: '分享',
 };
 
+/** 鼠标悬停气泡提示（Base UI Portal Tooltip）固定文案 */
+export const tooltips: Dictionary = {
+  // Songs Simple / Advanced
+  'Browse, upload or record audio.': '浏览、上传或录制音频。',
+  'Record or upload your voice and use it to create anything.': '录制或上传你的声音，用于创作任意内容。',
+  'Add an image to your creation.': '为你的作品添加一张图片。',
+  'Use songs to inspire your creation': '用已有歌曲为你的创作提供灵感',
+  'Enter styles or lyrics to create': '请输入风格或歌词以开始创作',
+  'Change the gender of the generated vocals': '更改生成人声的性别',
+  'Desired song length, 10 seconds to 6 minutes.': '期望的歌曲时长，范围 10 秒至 6 分钟。',
+  'Uses more compute to maximize consistency throughout the song. Costs 2x credits per song.':
+    '投入更多算力以最大化整首歌的一致性，每首歌消耗 2 倍积分。',
+  'Turn it up for wild, unexpected results': '调高可获得更大胆、出人意料的效果',
+  'Turn it up to match your style description': '调高可让生成结果更贴合你的风格描述',
+  'Clips have slight style variation.': '生成片段之间保持轻微的风格变化。',
+
+  // Speech 模式
+  'Enter a description to create': '请输入描述以开始创作',
+
+  // Sounds 模式
+  'One-shot plays once, Loop repeats continuously': '单次采样仅播放一次，循环片段可无缝连续重复',
+  'Beats per minute (tempo)': '每分钟节拍数（速度 / 节奏）',
+  'Musical key of the sound': '音效的音乐调性',
+  'Enter a sound description to create': '请输入音效描述以开始创作',
+
+  // Visuals 模式
+  'Add a reference': '添加参考素材',
+  'Browse film techniques to add to your prompt': '浏览影视技法并添加到你的提示词中',
+  'Nothing to clear yet.': '暂无可清空的内容。',
+  'Describe your visual to continue.': '请描述你的视觉画面以继续。',
+  "Add a song to set your video's audio": '添加一首歌曲作为视频配乐',
+  "Keep a character's look throughout your video": '在整个视频中保持角色外观一致',
+  'Add the image your video starts on': '添加视频起始画面（首帧）',
+  'Add the image your video ends on': '添加视频结束画面（尾帧）',
+  'Add images to guide the look, like a character, object or style':
+    '添加参考图片以引导画面外观（如角色、物体或风格）',
+  'Add audio to lip sync.': '添加音频以开启口型同步。',
+
+  // 底部播放栏 Tooltip
+  Shuffle: '随机播放',
+  'Enable shuffle': '开启随机播放',
+  'Disable shuffle': '关闭随机播放',
+  Repeat: '循环播放',
+  'Enable repeat': '开启列表循环',
+  'Enable repeat 1': '开启单曲循环',
+  'Disable repeat': '关闭循环播放',
+  Mute: '静音',
+  Unmute: '取消静音',
+  'Show song details': '显示歌曲详情',
+  'Hide song details': '隐藏歌曲详情',
+  Previous: '上一首',
+  Next: '下一首',
+};
+
 /** 在静态词典中查找精确文案并按当前模式返回译文 */
 export function lookup(
   dictionary: Dictionary,
@@ -624,6 +678,13 @@ export function lookupDynamic(
     const atTimeMatch = normalized.match(/^at (\d+:\d+)$/);
     if (atTimeMatch) {
       return formatTranslation(value, `位于 ${atTimeMatch[1]}`, mode);
+    }
+  }
+
+  if (scope === 'tooltip') {
+    const creditsRemainingMatch = normalized.match(/^Credits remaining:\s*([\d,]+)$/);
+    if (creditsRemainingMatch) {
+      return formatTranslation(value, `剩余积分：${creditsRemainingMatch[1]}`, mode);
     }
   }
 

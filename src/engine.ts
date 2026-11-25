@@ -109,7 +109,7 @@ export class TranslationEngine {
           childList: true,
           characterData: true,
           attributes: true,
-          attributeFilter: ['title', 'placeholder', 'role', 'href', 'aria-label', 'hidden', 'contenteditable'],
+          attributeFilter: ['title', 'placeholder', 'role', 'href', 'aria-label', 'hidden', 'contenteditable', 'data-open'],
         });
       }
       this.document.defaultView?.addEventListener('popstate', this.handlePopState);
